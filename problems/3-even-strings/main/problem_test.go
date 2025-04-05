@@ -14,6 +14,16 @@ func Test_findPairs(t *testing.T) {
 		{
 			args: args{
 				[]string{
+					"aa",
+					"aa",
+					"ba",
+				},
+			},
+			want: 3,
+		},
+		{
+			args: args{
+				[]string{
 					"xxxiy",
 					"xxzj",
 					"xxyix",

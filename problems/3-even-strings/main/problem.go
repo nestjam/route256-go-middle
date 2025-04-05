@@ -21,13 +21,21 @@ func findPairs(strings []string) int {
 		}
 
 		for j := i + 1; j < len(strings); j++ {
-			isOddEqual := true
-			if oddGroups[i] != oddGroups[j] {
+			var isOddEqual bool
+			if oddGroups[i] == oddGroups[j] {
+				isOddEqual = true
+			} else if oddGroups[j] == -1 && oddGroups[i] != i {
+				isOddEqual = false
+			} else {
 				isOddEqual = equalOdds(strings[i], strings[j])
 			}
 
-			isEvenEqual := true
-			if evenGroups[i] != evenGroups[j] {
+			var isEvenEqual bool
+			if evenGroups[i] == evenGroups[j] {
+				isEvenEqual = true
+			} else if evenGroups[j] == -1 && evenGroups[i] != i {
+				isEvenEqual = false
+			} else {
 				isEvenEqual = equalEvens(strings[i], strings[j])
 			}
 
@@ -91,18 +99,7 @@ func equalEvens(s1, s2 string) bool {
 		}
 	}
 
-	// for i := 1; i < l; i += 2 {
-	// 	if s1[i] != s2[i] {
-	// 		return false
-	// 	}
-	// }
-
-	j := l - 1
-	if l%2 != 0 {
-		j--
-	}
-
-	for i := j; i >= 0; i -= 2 {
+	for i := 1; i < l; i += 2 {
 		if s1[i] != s2[i] {
 			return false
 		}
