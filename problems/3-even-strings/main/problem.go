@@ -1,12 +1,46 @@
 package main
 
 func findPairs(strings []string) int {
+	oddGroups := make([]int, len(strings))
+	evenGroups := make([]int, len(strings))
+
+	for i := 0; i < len(strings); i++ {
+		oddGroups[i] = -1
+		evenGroups[i] = -1
+	}
+
 	count := 0
 
 	for i := 0; i < len(strings); i++ {
+		if oddGroups[i] == -1 {
+			oddGroups[i] = i
+		}
+
+		if evenGroups[i] == -1 {
+			evenGroups[i] = i
+		}
+
 		for j := i + 1; j < len(strings); j++ {
-			if equalOdds(strings[i], strings[j]) || equalEvens(strings[i], strings[j]) {
+			isOddEqual := true
+			if oddGroups[i] != oddGroups[j] {
+				isOddEqual = equalOdds(strings[i], strings[j])
+			}
+
+			isEvenEqual := true
+			if evenGroups[i] != evenGroups[j] {
+				isEvenEqual = equalEvens(strings[i], strings[j])
+			}
+
+			if isOddEqual || isEvenEqual {
 				count++
+			}
+
+			if isOddEqual && oddGroups[j] == -1 {
+				oddGroups[j] = i
+			}
+
+			if isEvenEqual && evenGroups[j] == -1 {
+				evenGroups[j] = i
 			}
 		}
 	}
@@ -15,14 +49,18 @@ func findPairs(strings []string) int {
 }
 
 func equalOdds(s1, s2 string) bool {
-	l := min(len(s1), len(s2))
+	l := len(s1)
 
-	if l%2 == 0 && len(s1) != len(s2) {
-		return false
-	}
+	if len(s1) != len(s2) {
+		l := min(len(s1), len(s2))
 
-	if len(s1)-l > 1 || len(s2)-l > 1 {
-		return false
+		if l%2 == 0 {
+			return false
+		}
+
+		if len(s1)-l > 1 || len(s2)-l > 1 {
+			return false
+		}
 	}
 
 	for i := 0; i < l; i += 2 {
@@ -35,21 +73,36 @@ func equalOdds(s1, s2 string) bool {
 }
 
 func equalEvens(s1, s2 string) bool {
-	l := min(len(s1), len(s2))
+	l := len(s1)
 
 	if l < 2 {
 		return false
 	}
 
-	if l%2 != 0 && len(s1) != len(s2) {
-		return false
+	if len(s1) != len(s2) {
+		l = min(len(s1), len(s2))
+
+		if l < 2 || l%2 != 0 {
+			return false
+		}
+
+		if len(s1)-l > 1 || len(s2)-l > 1 {
+			return false
+		}
 	}
 
-	if len(s1)-l > 1 || len(s2)-l > 1 {
-		return false
+	// for i := 1; i < l; i += 2 {
+	// 	if s1[i] != s2[i] {
+	// 		return false
+	// 	}
+	// }
+
+	j := l - 1
+	if l%2 != 0 {
+		j--
 	}
 
-	for i := 1; i < len(s1); i += 2 {
+	for i := j; i >= 0; i -= 2 {
 		if s1[i] != s2[i] {
 			return false
 		}

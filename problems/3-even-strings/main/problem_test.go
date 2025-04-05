@@ -12,7 +12,16 @@ func Test_findPairs(t *testing.T) {
 		want int
 	}{
 		{
-			name: "",
+			args: args{
+				[]string{
+					"xxxiy",
+					"xxzj",
+					"xxyix",
+				},
+			},
+			want: 1,
+		},
+		{
 			args: args{
 				[]string{
 					"ab",
