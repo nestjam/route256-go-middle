@@ -71,6 +71,16 @@ func equalOdds(s1, s2 string) bool {
 		}
 	}
 
+	if l%2 == 0 {
+		if s1[l-2] != s2[l-2] {
+			return false
+		}
+	} else {
+		if s1[l-1] != s2[l-1] {
+			return false
+		}
+	}
+
 	for i := 0; i < l; i += 2 {
 		if s1[i] != s2[i] {
 			return false
@@ -95,6 +105,16 @@ func equalEvens(s1, s2 string) bool {
 		}
 
 		if len(s1)-l > 1 || len(s2)-l > 1 {
+			return false
+		}
+	}
+
+	if l%2 == 0 {
+		if s1[l-1] != s2[l-1] {
+			return false
+		}
+	} else {
+		if s1[l-2] != s2[l-2] {
 			return false
 		}
 	}
