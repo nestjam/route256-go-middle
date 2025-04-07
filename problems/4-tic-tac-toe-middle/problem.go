@@ -17,7 +17,7 @@ func newBoard(b [][]cell) board {
 	return board{b: b, n: len(b), m: len(b[0])}
 }
 
-func (b *board) lookupMajorDiagonal(i, j int) line {
+func (b *board) lookupMajorDiagonal(i, j, maxCount int) (line, bool) {
 	line := line{start: newPoint(i, j)}
 
 	l, k := i, j
@@ -29,13 +29,17 @@ func (b *board) lookupMajorDiagonal(i, j int) line {
 		line.count++
 		l++
 		k++
+
+		if line.count >= maxCount {
+			return line, false
+		}
 	}
 
 	line.end = newPoint(l-1, k-1)
-	return line
+	return line, true
 }
 
-func (b *board) lookupMinorDiagonal(i, j int) line {
+func (b *board) lookupMinorDiagonal(i, j, maxCount int) (line, bool) {
 	line := line{start: newPoint(i, j)}
 
 	l, k := i, j
@@ -47,13 +51,17 @@ func (b *board) lookupMinorDiagonal(i, j int) line {
 		line.count++
 		l++
 		k--
+
+		if line.count >= maxCount {
+			return line, false
+		}
 	}
 
 	line.end = newPoint(l-1, k+1)
-	return line
+	return line, true
 }
 
-func (b *board) lookupRight(i, j int) line {
+func (b *board) lookupRight(i, j, maxCount int) (line, bool) {
 	line := line{start: newPoint(i, j)}
 
 	l := j
@@ -63,13 +71,17 @@ func (b *board) lookupRight(i, j int) line {
 		}
 
 		line.count++
+
+		if line.count >= maxCount {
+			return line, false
+		}
 	}
 
 	line.end = newPoint(i, l-1)
-	return line
+	return line, true
 }
 
-func (b *board) lookupDown(i, j int) line {
+func (b *board) lookupDown(i, j, maxCount int) (line, bool) {
 	line := line{start: newPoint(i, j)}
 
 	l := i
@@ -79,10 +91,14 @@ func (b *board) lookupDown(i, j int) line {
 		}
 
 		line.count++
+
+		if line.count >= maxCount {
+			return line, false
+		}
 	}
 
 	line.end = newPoint(l-1, j)
-	return line
+	return line, true
 }
 
 func (b *board) isEmpty(p point) bool {
@@ -194,15 +210,23 @@ func findMinorDiagonalLines(b *board, k int) (lines map[point]line, ok bool) {
 		l, j := i, b.m-1
 		for j >= 0 && l < b.n {
 			cell := b.cell(l, j)
-			line := b.lookupMinorDiagonal(l, j)
 
-			if cell != e && line.count >= k {
+			if cell == e {
+				l++
+				j--
+				continue
+			}
+
+			line, ok := b.lookupMinorDiagonal(l, j, k)
+
+			if !ok {
 				return lines, false
 			}
 
 			if cell == x {
 				lines[line.start] = line
 			}
+
 			l += line.count
 			j -= line.count
 		}
@@ -212,15 +236,23 @@ func findMinorDiagonalLines(b *board, k int) (lines map[point]line, ok bool) {
 		i, l := 0, j
 		for l >= 0 && i < b.n {
 			cell := b.cell(i, l)
-			line := b.lookupMinorDiagonal(i, l)
 
-			if cell != e && line.count >= k {
+			if cell == e {
+				i++
+				l--
+				continue
+			}
+
+			line, ok := b.lookupMinorDiagonal(i, l, k)
+
+			if !ok {
 				return lines, false
 			}
 
 			if cell == x {
 				lines[line.start] = line
 			}
+
 			i += line.count
 			l -= line.count
 		}
@@ -259,15 +291,23 @@ func findMajorDiagonalLines(b *board, k int) (lines map[point]line, ok bool) {
 		l, j := i, 0
 		for j < b.m && l < b.n {
 			cell := b.cell(l, j)
-			line := b.lookupMajorDiagonal(l, j)
 
-			if cell != e && line.count >= k {
+			if cell == e {
+				l++
+				j++
+				continue
+			}
+
+			line, ok := b.lookupMajorDiagonal(l, j, k)
+
+			if !ok {
 				return lines, false
 			}
 
 			if cell == x {
 				lines[line.start] = line
 			}
+
 			l += line.count
 			j += line.count
 		}
@@ -277,15 +317,23 @@ func findMajorDiagonalLines(b *board, k int) (lines map[point]line, ok bool) {
 		i, l := 0, j
 		for l < b.m && i < b.n {
 			cell := b.cell(i, l)
-			line := b.lookupMajorDiagonal(i, l)
 
-			if cell != e && line.count >= k {
+			if cell == e {
+				i++
+				l++
+				continue
+			}
+
+			line, ok := b.lookupMajorDiagonal(i, l, k)
+
+			if !ok {
 				return lines, false
 			}
 
 			if cell == x {
 				lines[line.start] = line
 			}
+
 			i += line.count
 			l += line.count
 		}
@@ -324,15 +372,20 @@ func findVerticalLines(b *board, k int) (lines map[point]line, ok bool) {
 		for i := 0; i < b.n; i++ {
 			cell := b.cell(i, j)
 
-			line := b.lookupDown(i, j)
+			if cell == e {
+				continue
+			}
 
-			if cell != e && line.count >= k {
+			line, ok := b.lookupDown(i, j, k)
+
+			if !ok {
 				return lines, false
 			}
 
 			if cell == x {
 				lines[line.start] = line
 			}
+
 			i += line.count - 1
 		}
 	}
@@ -369,15 +422,21 @@ func findHorizontalLines(b *board, k int) (lines map[point]line, ok bool) {
 	for i := 0; i < b.n; i++ {
 		for j := 0; j < b.m; j++ {
 			cell := b.cell(i, j)
-			line := b.lookupRight(i, j)
 
-			if cell != e && line.count >= k {
+			if cell == e {
+				continue
+			}
+
+			line, ok := b.lookupRight(i, j, k)
+
+			if !ok {
 				return lines, false
 			}
 
 			if b.cell(i, j) == x {
 				lines[line.start] = line
 			}
+
 			j += line.count - 1
 		}
 	}
