@@ -4,9 +4,17 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"net/http"
+	_ "net/http/pprof" // Import pprof for profiling
 )
 
 func main() {
+	// Start a server for pprof endpoints
+	go func() {
+		fmt.Println("Starting pprof server at http://localhost:6060")
+		http.ListenAndServe("localhost:6060", nil)
+	}()
+
 	var in *bufio.Reader
 	var out *bufio.Writer
 	in = bufio.NewReader(os.Stdin)
@@ -52,4 +60,7 @@ func main() {
 			fmt.Fprint(out, "NO\n")
 		}
 	}
+
+	fmt.Println("Application running...")
+	select {} // Block forever to keep the app running
 }
