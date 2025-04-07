@@ -109,6 +109,14 @@ func (b *board) isEmpty(p point) bool {
 	return b.b[p.i][p.j] == e
 }
 
+func (b *board) isCross(p point) bool {
+	if p.i < 0 || p.i >= b.n || p.j < 0 || p.j >= b.m {
+		return false
+	}
+
+	return b.b[p.i][p.j] == x
+}
+
 type line struct {
 	start, end point
 	count      int
@@ -369,10 +377,18 @@ func findVerticalLines(b *board, k int) (lines map[point]line, ok bool) {
 	lines = make(map[point]line)
 
 	for j := 0; j < b.m; j++ {
+		count := 0
+
 		for i := 0; i < b.n; i++ {
 			cell := b.cell(i, j)
 
 			if cell == e {
+				count++
+
+				if count > b.n-k && !b.isCross(newPoint(i+1, j)) {
+					break
+				}
+
 				continue
 			}
 
@@ -387,6 +403,7 @@ func findVerticalLines(b *board, k int) (lines map[point]line, ok bool) {
 			}
 
 			i += line.count - 1
+			count += line.count
 		}
 	}
 
@@ -420,10 +437,18 @@ func findHorizontalLines(b *board, k int) (lines map[point]line, ok bool) {
 	lines = make(map[point]line)
 
 	for i := 0; i < b.n; i++ {
+		count := 0
+
 		for j := 0; j < b.m; j++ {
 			cell := b.cell(i, j)
 
 			if cell == e {
+				count++
+
+				if count > b.m-k && !b.isCross(newPoint(i, j+1)) {
+					break
+				}
+
 				continue
 			}
 
@@ -438,6 +463,7 @@ func findHorizontalLines(b *board, k int) (lines map[point]line, ok bool) {
 			}
 
 			j += line.count - 1
+			count += line.count
 		}
 	}
 
