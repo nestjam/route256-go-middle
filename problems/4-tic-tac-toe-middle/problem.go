@@ -35,7 +35,6 @@ func (b *board) lookupMajorDiagonal(i, j, maxCount int) (line, bool) {
 		}
 	}
 
-	line.end = newPoint(l-1, k-1)
 	return line, true
 }
 
@@ -57,7 +56,6 @@ func (b *board) lookupMinorDiagonal(i, j, maxCount int) (line, bool) {
 		}
 	}
 
-	line.end = newPoint(l-1, k+1)
 	return line, true
 }
 
@@ -77,7 +75,6 @@ func (b *board) lookupRight(i, j, maxCount int) (line, bool) {
 		}
 	}
 
-	line.end = newPoint(i, l-1)
 	return line, true
 }
 
@@ -97,7 +94,6 @@ func (b *board) lookupDown(i, j, maxCount int) (line, bool) {
 		}
 	}
 
-	line.end = newPoint(l-1, j)
 	return line, true
 }
 
@@ -118,8 +114,24 @@ func (b *board) isCross(p point) bool {
 }
 
 type line struct {
-	start, end point
-	count      int
+	start point
+	count int
+}
+
+func (l line) horizontalEnd() point {
+	return l.start.add(0, l.count-1)
+}
+
+func (l line) verticalEnd() point {
+	return l.start.add(l.count-1, 0)
+}
+
+func (l line) majorDiagonalEnd() point {
+	return l.start.add(l.count-1, l.count-1)
+}
+
+func (l line) minorDiagonalEnd() point {
+	return l.start.add(l.count-1, 1-l.count)
 }
 
 type point struct {
@@ -195,10 +207,11 @@ func canCrossWinInMinorDiagonalLines(lines map[point]line, b *board, k int) bool
 		}
 
 		count := line.count
-		if b.isEmpty(line.end.add(1, -1)) {
+		end := line.minorDiagonalEnd()
+		if b.isEmpty(end.add(1, -1)) {
 			count++
 
-			if nextLine, ok := lines[line.end.add(2, -2)]; ok {
+			if nextLine, ok := lines[end.add(2, -2)]; ok {
 				count += nextLine.count
 			}
 
@@ -276,10 +289,11 @@ func canCrossWinInMajorDiagonalLines(lines map[point]line, b *board, k int) bool
 		}
 
 		count := line.count
-		if b.isEmpty(line.end.add(1, 1)) {
+		end := line.majorDiagonalEnd()
+		if b.isEmpty(end.add(1, 1)) {
 			count++
 
-			if nextLine, ok := lines[line.end.add(2, 2)]; ok {
+			if nextLine, ok := lines[end.add(2, 2)]; ok {
 				count += nextLine.count
 			}
 
@@ -357,10 +371,11 @@ func canCrossWinInVerticalLines(lines map[point]line, b *board, k int) bool {
 		}
 
 		count := line.count
-		if b.isEmpty(line.end.add(1, 0)) {
+		end := line.verticalEnd()
+		if b.isEmpty(end.add(1, 0)) {
 			count++
 
-			if nextLine, ok := lines[line.end.add(2, 0)]; ok {
+			if nextLine, ok := lines[end.add(2, 0)]; ok {
 				count += nextLine.count
 			}
 
@@ -417,10 +432,11 @@ func canCrossWinInHorizontalLines(lines map[point]line, b *board, k int) bool {
 		}
 
 		count := line.count
-		if b.isEmpty(line.end.add(0, 1)) {
+		end := line.horizontalEnd()
+		if b.isEmpty(end.add(0, 1)) {
 			count++
 
-			if nextLine, ok := lines[line.end.add(0, 2)]; ok {
+			if nextLine, ok := lines[end.add(0, 2)]; ok {
 				count += nextLine.count
 			}
 
