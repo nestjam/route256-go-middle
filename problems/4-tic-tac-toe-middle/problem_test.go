@@ -1,4 +1,4 @@
-package tictactoemiddle
+package main
 
 import "testing"
 
@@ -14,15 +14,36 @@ func Test_canCrossWin(t *testing.T) {
 	}{
 		{
 			args: args{
-				k:     3,
-				board: [][]cell{{o, o, x}, {o, e, o}, {x, e, e}},
+				k:     2,
+				board: [][]cell{{x, o, e}, {o, e, e}, {e, e, e}},
 			},
-			want: true,
+			want: false,
 		},
 		{
 			args: args{
 				k:     2,
-				board: [][]cell{{o, e}, {x, o}},
+				board: [][]cell{{o, x, e}, {e, o, e}, {e, e, o}},
+			},
+			want: false,
+		},
+		{
+			args: args{
+				k:     3,
+				board: [][]cell{{o, e, x}, {o, e, e}, {o, e, x}},
+			},
+			want: false,
+		},
+		{
+			args: args{
+				k:     3,
+				board: [][]cell{{o, o, o}, {e, e, e}, {x, x, e}},
+			},
+			want: false,
+		},
+		{
+			args: args{
+				k:     3,
+				board: [][]cell{{o, o, x}, {o, e, o}, {x, e, e}},
 			},
 			want: true,
 		},
@@ -44,13 +65,6 @@ func Test_canCrossWin(t *testing.T) {
 			args: args{
 				k:     3,
 				board: [][]cell{{x, o, e}, {o, e, o}, {e, e, x}},
-			},
-			want: true,
-		},
-		{
-			args: args{
-				k:     2,
-				board: [][]cell{{e, o}, {o, x}},
 			},
 			want: true,
 		},
