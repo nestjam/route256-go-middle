@@ -15,6 +15,7 @@ func Test_distribute(t *testing.T) {
 		args        args
 		wantDelta   int
 		wantServers []int
+		ignoreServers bool
 	}{
 		{
 			name: "3.5",
@@ -24,6 +25,7 @@ func Test_distribute(t *testing.T) {
 			},
 			wantDelta:  0,
 			wantServers: []int{2, 4, 3, 3, 2},
+			ignoreServers: true,
 		},
 		{
 			name: "3.4",
@@ -33,6 +35,7 @@ func Test_distribute(t *testing.T) {
 			},
 			wantDelta:   0,
 			wantServers: []int{1, 2, 2, 4, 3},
+			ignoreServers: true,
 		},
 		{
 			name: "3.3",
@@ -129,6 +132,7 @@ func Test_distribute(t *testing.T) {
 			if got != tt.wantDelta {
 				t.Errorf("distribute() got = %v, want %v", got, tt.wantDelta)
 			}
+
 			if !reflect.DeepEqual(got1, tt.wantServers) {
 				t.Errorf("distribute() got1 = %v, want %v", got1, tt.wantServers)
 			}

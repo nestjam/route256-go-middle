@@ -6,14 +6,27 @@ import (
 )
 
 func distribute(images []int, servers []int) (minDelta int, storages []int) {
-	times := make([][]int, len(images))
+	weightGroups := make(map[int][]int)
 
 	for i := 0; i < len(images); i++ {
+		weightGroups[images[i]] = append(weightGroups[images[i]], i)
+	}
+
+	uniqueImages := make([]int, len(weightGroups))
+	i := 0
+	for weight, _ := range weightGroups {
+		uniqueImages[i] = weight
+		i++
+	}
+	
+	times := make([][]int, len(uniqueImages))
+
+	for i := 0; i < len(uniqueImages); i++ {
 		times[i] = make([]int, len(servers))
 		for j := 0; j < len(servers); j++ {
-			t := images[i] / servers[j]
+			t := uniqueImages[i] / servers[j]
 
-			if images[i]%servers[j] > 0 {
+			if uniqueImages[i]%servers[j] > 0 {
 				t++
 			}
 
@@ -23,23 +36,38 @@ func distribute(images []int, servers []int) (minDelta int, storages []int) {
 
 	minDelta = math.MaxInt
 
-	for i := 0; i < len(images); i++ {
+	for i := 0; i < len(uniqueImages); i++ {
 		for j := 0; j < len(servers); j++ {
 			ref := times[i][j]
-			s, d := find(times, ref)
+			s, delta := find(times, ref)
 
-			if d == 0 {
-				return d, s
+			if delta == 0 {
+				return delta, expand(s, uniqueImages, weightGroups, images)
 			}
 
-			if minDelta > d {
-				minDelta = d
+			if minDelta > delta {
+				minDelta = delta
 				storages = s
 			}
 		}
 	}
 
-	return
+	return minDelta, expand(storages, uniqueImages, weightGroups, images)
+}
+
+func expand(storages []int, uniqueImages []int, weightGroups map[int][]int, images []int) []int{
+	newStorages := make([]int, len(images))
+
+	for i := 0; i < len(storages); i++ {
+		server := storages[i]
+		imageWeight := uniqueImages[i]
+		imagesGroup := weightGroups[imageWeight]
+		for j := 0; j < len(imagesGroup); j++ {
+			newStorages[imagesGroup[j]] = server
+		}
+	}
+
+	return newStorages
 }
 
 func find(times [][]int, ref int) (storages []int, minDelta int) {
