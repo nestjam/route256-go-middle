@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	//"net/http"
-	//_ "net/http/pprof" // Import pprof for profiling
+	// "net/http"
+	// _ "net/http/pprof" // Import pprof for profiling
 )
 
 func main() {
@@ -17,10 +17,15 @@ func main() {
 	// }()
 
 	var in *bufio.Reader
+	//in = bufio.NewReader(os.Stdin)
 	var out *bufio.Writer
-	in = bufio.NewReader(os.Stdin)
 	out = bufio.NewWriter(os.Stdout)
 	defer out.Flush()
+
+	file, _ := os.Open("C:/Users/neste/Downloads/content-delivery/15")
+	defer file.Close() // Ensure the file is closed when the function exits
+	in = bufio.NewReader(file)
+	fmt.Fprintln(out)
 
 	var setCount int
 	var serverCount, imageCount int

@@ -1,15 +1,19 @@
 package main
 
-func distribute(imageWeights []int, serverThrouput []int) (minDelta int, imageStorages []int) {
-	imageCount := len(imageWeights)
-	times := make([][]int, imageCount)
+import (
+	"math"
+	"slices"
+)
 
-	for i := 0; i < imageCount; i++ {
-		times[i] = make([]int, len(serverThrouput))
-		for j := 0; j < len(serverThrouput); j++ {
-			t := imageWeights[i] / serverThrouput[j]
+func distribute(images []int, servers []int) (minDelta int, storages []int) {
+	times := make([][]int, len(images))
 
-			if imageWeights[i]%serverThrouput[j] > 0 {
+	for i := 0; i < len(images); i++ {
+		times[i] = make([]int, len(servers))
+		for j := 0; j < len(servers); j++ {
+			t := images[i] / servers[j]
+
+			if images[i]%servers[j] > 0 {
 				t++
 			}
 
@@ -17,60 +21,128 @@ func distribute(imageWeights []int, serverThrouput []int) (minDelta int, imageSt
 		}
 	}
 
-	imageStorages = make([]int, imageCount)
-	combination := make([]int, imageCount)
-	minDelta = getDelta(combination, times)
-	serverCount := len(serverThrouput)
+	minDelta = math.MaxInt
 
-	for {
-		combination[imageCount-1]++
+	for i := 0; i < len(images); i++ {
+		for j := 0; j < len(servers); j++ {
+			ref := times[i][j]
+			s, d := find(times, ref)
 
-		for i := imageCount - 1; i > 0; i-- {
-			if combination[i]/serverCount > 0 {
-				combination[i] = 0
-				combination[i-1]++
-			} else {
-				break
+			if d == 0 {
+				return d, s
+			}
+
+			if minDelta > d {
+				minDelta = d
+				storages = s
 			}
 		}
-
-		if combination[0]/serverCount > 0 {
-			break
-		}
-
-		delta := getDelta(combination, times)
-
-		if minDelta > delta {
-			minDelta = delta
-			copy(imageStorages, combination)
-		}
-
-		if minDelta == 0 {
-			break
-		}
-	}
-
-	for i := 0; i < imageCount; i++ {
-		imageStorages[i]++
 	}
 
 	return
 }
 
-func getDelta(servers []int, times [][]int) int {
-	server := servers[0]
-	max, min := times[0][server], times[0][server]
+func find(times [][]int, ref int) (storages []int, minDelta int) {
+	intervals := make([]interval, len(times))
 
-	for i := 1; i < len(times); i++ {
-		server = servers[i]
-		if max < times[i][server] {
-			max = times[i][server]
+	for i := 0; i < len(times); i++ {
+		interval := interval{
+			image: i,
+			left:  downloadTime{server: -1, time: math.MinInt},
+			right: downloadTime{server: -1, time: math.MaxInt},
 		}
 
-		if min > times[i][server] {
-			min = times[i][server]
+		for j := 0; j < len(times[i]); j++ {
+			value := times[i][j] - ref
+
+			if value == 0 {
+				interval.left.server = j
+				interval.left.time = times[i][j]
+				interval.right = interval.left
+				break
+			} else if value < 0 && times[i][j] > interval.left.time {
+				interval.left.server = j
+				interval.left.time = times[i][j]
+			} else if value > 0 && times[i][j] < interval.right.time {
+				interval.right.server = j
+				interval.right.time = times[i][j]
+			}
 		}
+
+		intervals[i] = interval
 	}
 
-	return max - min
+	slices.SortFunc(intervals, func(a, b interval) int {
+		return a.getAbsMin(ref) - b.getAbsMin(ref)
+	})
+
+	min, max, storages := findCombinationRecursive(0, intervals, ref, ref, ref, make([]int, len(intervals)))
+
+	for i := 0; i < len(storages); i++ {
+		storages[i]++
+	}
+
+	return storages, max - min
+}
+
+func findCombinationRecursive(i int, intervals []interval, refTime, minTime, maxTime int, storages []int) (int, int, []int) {
+	if i == len(intervals) {
+		return minTime, maxTime, storages
+	}
+
+	interval := intervals[i]
+
+	if interval.left.server == -1 {
+		storages[interval.image] = interval.right.server
+		return findCombinationRecursive(i+1, intervals, refTime, minTime, max(maxTime, interval.right.time), storages)
+	} else if interval.right.server == -1 { 
+		storages[interval.image] = interval.left.server
+		return findCombinationRecursive(i+1, intervals, refTime, min(minTime, interval.left.time), maxTime, storages)
+	} else if abs(refTime-interval.left.time) == abs(refTime-interval.right.time) && refTime-interval.right.time != 0 {
+		storagesOp1 := make([]int, len(storages))
+		copy(storagesOp1, storages)
+		storagesOp1[interval.image] = interval.left.server
+
+		minOp1, maxOp1, storagesOp1 := findCombinationRecursive(i+1, intervals, refTime, min(minTime, interval.left.time), maxTime, storagesOp1)
+
+		storagesOp2 := make([]int, len(storages))
+		copy(storagesOp2, storages)
+		storagesOp2[interval.image] = interval.right.server
+
+		minOp2, maxOp2, storagesOp2 := findCombinationRecursive(i+1, intervals, refTime, minTime, max(maxTime, interval.right.time), storagesOp2)
+
+		if maxOp1-minOp1 < maxOp2-minOp2 {
+			return minOp1, maxOp1, storagesOp1
+		} else {
+			return minOp2, maxOp2, storagesOp2
+		}
+	} else if maxTime - interval.left.time < interval.right.time - minTime {//abs(refTime-interval.left.time) < abs(refTime-interval.right.time) {
+		storages[interval.image] = interval.left.server
+		return findCombinationRecursive(i+1, intervals, refTime, min(minTime, interval.left.time), maxTime, storages)
+	} else {
+		storages[interval.image] = interval.right.server
+		return findCombinationRecursive(i+1, intervals, refTime, minTime, max(maxTime, interval.right.time), storages)
+	}
+}
+
+type interval struct {
+	image int
+	left, right downloadTime
+}
+
+type downloadTime struct {
+	server int
+	time   int
+}
+
+func (i interval) getAbsMin(ref int) int {
+	return min(abs(ref-i.left.time), abs(ref-i.right.time))
+}
+
+func abs(value int) int {
+	if value < 0 {
+		return -value
+	}
+
+	return value
 }
