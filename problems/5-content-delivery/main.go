@@ -23,7 +23,7 @@ func main() {
 	defer out.Flush()
 
 	file, _ := os.Open("C:/Users/neste/Downloads/content-delivery/15")
-	defer file.Close() // Ensure the file is closed when the function exits
+	defer file.Close()
 	in = bufio.NewReader(file)
 	fmt.Fprintln(out)
 
