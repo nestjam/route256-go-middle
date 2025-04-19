@@ -57,72 +57,60 @@ func findPairs(strings []string) int {
 }
 
 func equalOdds(s1, s2 string) bool {
-	l := len(s1)
+	n := min(len(s1), len(s2))
 
-	if len(s1) != len(s2) {
-		l := min(len(s1), len(s2))
-
-		if l%2 == 0 {
-			return false
-		}
-
-		if len(s1)-l > 1 || len(s2)-l > 1 {
-			return false
-		}
+	if n%2 == 0 {
+		n--
 	}
 
-	if l%2 == 0 {
-		if s1[l-2] != s2[l-2] {
-			return false
-		}
-	} else {
-		if s1[l-1] != s2[l-1] {
-			return false
-		}
+	if len(s1)-n > 1 || len(s2)-n > 1 {
+		return false
 	}
 
-	for i := 0; i < l; i += 2 {
-		if s1[i] != s2[i] {
+	l, r := 0, n-1
+	for i := 0; i < max(n/2, 1); i++ {
+		if s1[l] != s2[l] {
 			return false
 		}
+
+		if s1[r] != s2[r] {
+			return false
+		}
+
+		l += 2
+		r -= 2
 	}
 
 	return true
 }
 
 func equalEvens(s1, s2 string) bool {
-	l := len(s1)
+	n := min(len(s1), len(s2))
 
-	if l < 2 {
+	if n%2 == 1 {
+		n--
+	}
+
+	if n < 2 {
 		return false
 	}
 
-	if len(s1) != len(s2) {
-		l = min(len(s1), len(s2))
-
-		if l < 2 || l%2 != 0 {
-			return false
-		}
-
-		if len(s1)-l > 1 || len(s2)-l > 1 {
-			return false
-		}
+	if len(s1)-n > 1 || len(s2)-n > 1 {
+		return false
 	}
 
-	if l%2 == 0 {
-		if s1[l-1] != s2[l-1] {
+	l, r := 1, n-1
+	for i := 0; i < max(n/2, 1); i++ {
+		if s1[l] != s2[l] {
 			return false
 		}
-	} else {
-		if s1[l-2] != s2[l-2] {
-			return false
-		}
-	}
 
-	for i := 1; i < l; i += 2 {
-		if s1[i] != s2[i] {
+		if s1[r] != s2[r] {
 			return false
 		}
+
+		l += 2
+		r -= 2
 	}
 
 	return true
