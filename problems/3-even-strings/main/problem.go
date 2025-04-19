@@ -1,12 +1,22 @@
 package main
 
+import (
+	"hash/maphash"
+)
+
 func findPairs(strings []string) int {
 	oddGroups := make([]int, len(strings))
 	evenGroups := make([]int, len(strings))
 
+	h := &maphash.Hash{}
+	oddHashes := make([]uint64, len(strings))
+	evenHashes := make([]uint64, len(strings))
+
 	for i := 0; i < len(strings); i++ {
 		oddGroups[i] = -1
 		evenGroups[i] = -1
+		oddHashes[i] = hashOdds(h, strings[i])
+		evenHashes[i] = hashEvens(h, strings[i])
 	}
 
 	count := 0
@@ -26,7 +36,7 @@ func findPairs(strings []string) int {
 				isOddEqual = true
 			} else if oddGroups[j] == -1 && oddGroups[i] != i {
 				isOddEqual = false
-			} else {
+			} else if oddHashes[i] == oddHashes[j] {
 				isOddEqual = equalOdds(strings[i], strings[j])
 			}
 
@@ -35,7 +45,7 @@ func findPairs(strings []string) int {
 				isEvenEqual = true
 			} else if evenGroups[j] == -1 && evenGroups[i] != i {
 				isEvenEqual = false
-			} else {
+			} else if evenHashes[i] == evenHashes[j] {
 				isEvenEqual = equalEvens(strings[i], strings[j])
 			}
 
@@ -114,4 +124,25 @@ func equalEvens(s1, s2 string) bool {
 	}
 
 	return true
+}
+
+func hashOdds(h *maphash.Hash, s string) uint64 {
+	h.Reset()
+
+	for i := 0; i < len(s); i += 2 {
+		h.WriteByte(s[i])
+	}
+
+	return h.Sum64()
+}
+
+
+func hashEvens(h *maphash.Hash, s string) uint64 {
+	h.Reset()
+
+	for i := 1; i < len(s); i += 2 {
+		h.WriteByte(s[i])
+	}
+
+	return h.Sum64()
 }

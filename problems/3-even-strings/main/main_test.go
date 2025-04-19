@@ -17,40 +17,32 @@ func Test_main(t *testing.T) {
 	tests := []struct {
 		name string
 		problem string
-		want string
 	}{
 		{
 			problem: "1",
-			want: "1.a",
 		},
 		{
 			problem: "2",
-			want: "2.a",
 		},
 		{
 			problem: "3",
-			want: "3.a",
 		},
 		{
 			problem: "8",
-			want: "8.a",
 		},
 		{
 			problem: "9",
-			want: "9.a",
 		},
 		{
 			problem: "10",
-			want: "10.a",
 		},
 		{
 			problem: "21",
-			want: "21.a",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			run(t, problemsDir + tt.problem, problemsDir + tt.want)
+			run(t, problemsDir + tt.problem, problemsDir + tt.problem + ".a")
 		})
 	}
 }
